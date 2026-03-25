@@ -30,6 +30,10 @@ When the issue involves specific implementation patterns, read these references 
 - Code quality, MISRA compliance, testing frameworks, static analysis: read `references/code-quality-testing.md`
 - Engineering practices, DevOps, CI/CD, documentation, release management: read `references/engineering-practices-devops.md`
 - ADC calibration, PWM-ADC synchronization, sample time selection, injected/regular group usage, hardware oversampling, analog watchdog: read `references/adc-calibration-sampling.md`
+- PFC boost control, Vienna rectifier dq control, THD optimization, zero-crossing distortion: read `references/topology-pfc-vienna.md`
+- Buck/boost/buck-boost control modes (voltage-mode, PCMC, ACMC), CCM/DCM boundary, synchronous rectification: read `references/topology-dcdc-converters.md`
+- LLC frequency control, PSFB phase-shift control, ZVS conditions, burst mode, soft-start for isolated converters: read `references/topology-llc-psfb.md`
+- Grid-tied inverter dq current control, off-grid voltage control, SVM, anti-islanding, MPPT, harmonic compensation: read `references/topology-inverter-grid.md`
 
 ## Reference Documents (Content Summary)
 
@@ -111,6 +115,28 @@ Each reference file contains the following topics. Use this section to determine
   - Dual-ADC simultaneous sampling, DMA double-buffer, hardware oversampling strategies
   - Sample time selection guidelines, ISR read patterns, scaling coefficient precomputation
   - Analog watchdog (AWD) for hardware OVP/OCP detection and common ADC pitfalls
+
+- `references/topology-pfc-vienna.md`
+  - Single-phase boost PFC dual-loop control, feedforward compensation, zero-crossing distortion
+  - Three-phase Vienna rectifier dq-frame control, capacitor voltage balance, sector detection
+  - THD optimization strategies, topology-specific protection, STM32G4 HRTIM/COMP/OPAMP usage
+
+- `references/topology-dcdc-converters.md`
+  - Buck converter control modes: voltage-mode, peak current mode (PCMC), average current mode (ACMC)
+  - Boost converter RHP zero analysis and bandwidth limitation
+  - Buck-boost mode transition, CCM/DCM boundary detection, synchronous rectification dead-time
+  - Multi-phase interleaving, HRTIM dead-time configuration, topology-specific protection
+
+- `references/topology-llc-psfb.md`
+  - LLC resonant converter frequency control, frequency-to-timer conversion, burst mode
+  - PSFB phase-shift control, duty loss compensation, ZVS conditions for leading/lagging legs
+  - Soft-start strategies for isolated converters, transformer saturation prevention
+
+- `references/topology-inverter-grid.md`
+  - Grid-tied inverter dq-frame current control, grid voltage feedforward, cross-coupling decoupling
+  - Off-grid inverter voltage-mode control, self-generated angle reference
+  - Space Vector Modulation (SVM), anti-islanding (IEEE 1547), harmonic compensation with PR controllers
+  - MPPT Perturb & Observe integration, single-phase inverter specifics
 
 ## Highest Priority Preferences
 
@@ -360,6 +386,10 @@ Quick-scan index of all available reference files. Read as needed; do not expand
 - `references/code-quality-testing.md`
 - `references/engineering-practices-devops.md`
 - `references/adc-calibration-sampling.md`
+- `references/topology-pfc-vienna.md`
+- `references/topology-dcdc-converters.md`
+- `references/topology-llc-psfb.md`
+- `references/topology-inverter-grid.md`
 
 ## Final Goal
 
