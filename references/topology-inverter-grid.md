@@ -92,6 +92,10 @@ void grid_inv_feedforward(grid_inverter_t *inv,
 }
 ```
 
+### Grid-Tied Loop-Speed Tendency
+- **Current Loop Role**: dq current loop is usually the fast loop, but its useful bandwidth is limited by PWM delay, filter dynamics, and PLL angle quality
+- **Frequency Constraint**: LCL filters, sampling delay, and imperfect feedforward/decoupling often become the real limit before raw MCU execution time does
+
 ## 2. Off-Grid Inverter — Voltage Control Mode
 
 ### Control Architecture
@@ -140,6 +144,10 @@ void offgrid_control_loop(offgrid_inverter_t *inv) {
     /* Apply inverse Park → SVM */
 }
 ```
+
+### Off-Grid Loop-Speed Tendency
+- **Current Loop Role**: Inner current loop still provides the fast protection/stabilization path, but the outer voltage loop defines waveform quality
+- **Frequency Constraint**: Output filter resonance, load steps, and modulator delay should guide tuning more than a fixed “run as fast as possible” rule
 
 ## 3. Space Vector Modulation (SVM)
 

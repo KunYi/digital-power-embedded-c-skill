@@ -56,6 +56,10 @@ void llc_voltage_loop(llc_control_t *llc) {
 }
 ```
 
+### LLC Control-Loop Role
+- **Loop Role**: LLC is primarily a frequency-controlled resonant stage, so it should not be treated like a standard duty-controlled current-loop plant
+- **Frequency Constraint**: Control aggressiveness is limited by resonant-tank dynamics, ZVS margin, burst behavior, and measurement delay more than by simple ISR headroom
+
 ### Frequency-to-Timer Conversion
 
 ```c
@@ -117,6 +121,10 @@ void llc_burst_control(llc_control_t *llc, llc_burst_state_t *state) {
 - **Method**: Monitor switch node voltage to confirm zero-crossing before turn-on
 - **Hardware**: Use comparator on switch node or monitor dead-time current direction
 - **Loss of ZVS indicators**: f_sw < f_min, light load without burst mode, abnormal resonant tank
+
+### PSFB Control-Loop Role
+- **Loop Role**: PSFB control is usually centered on phase-shift modulation and soft-switching constraints rather than a generic “push the current loop faster” strategy
+- **Frequency Constraint**: Leakage inductance effects, duty loss, ZVS window, and current-sense delay should shape loop tuning expectations
 
 ## 2. Phase-Shifted Full-Bridge (PSFB)
 

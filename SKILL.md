@@ -30,10 +30,10 @@ When the issue involves specific implementation patterns, read these references 
 - Code quality, MISRA compliance, testing frameworks, static analysis: read `references/code-quality-testing.md`
 - Engineering practices, DevOps, CI/CD, documentation, release management: read `references/engineering-practices-devops.md`
 - ADC calibration, PWM-ADC synchronization, sample time selection, injected/regular group usage, hardware oversampling, analog watchdog: read `references/adc-calibration-sampling.md`
-- PFC boost control, Vienna rectifier dq control, THD optimization, zero-crossing distortion: read `references/topology-pfc-vienna.md`
-- Buck/boost/buck-boost control modes (voltage-mode, PCMC, ACMC), CCM/DCM boundary, synchronous rectification: read `references/topology-dcdc-converters.md`
-- LLC frequency control, PSFB phase-shift control, ZVS conditions, burst mode, soft-start for isolated converters: read `references/topology-llc-psfb.md`
-- Grid-tied inverter dq current control, off-grid voltage control, SVM, anti-islanding, MPPT, harmonic compensation: read `references/topology-inverter-grid.md`
+- PFC boost control, Vienna rectifier dq control, THD optimization, zero-crossing distortion, current-loop role and frequency tendency: read `references/topology-pfc-vienna.md`
+- Buck/boost/buck-boost control modes (voltage-mode, PCMC, ACMC), CCM/DCM boundary, synchronous rectification, topology-specific fast-loop expectations: read `references/topology-dcdc-converters.md`
+- LLC frequency control, PSFB phase-shift control, ZVS conditions, burst mode, soft-start for isolated converters, and why resonant stages differ from standard current-loop thinking: read `references/topology-llc-psfb.md`
+- Grid-tied inverter dq current control, off-grid voltage control, SVM, anti-islanding, MPPT, harmonic compensation, and filter/PLL-limited loop behavior: read `references/topology-inverter-grid.md`
 - MCU feature assumptions, part-to-part availability, and when to verify STM32G4 peripheral presence: read `references/stm32g4-capability-matrix.md`
 
 ## Reference Documents (Content Summary)
@@ -120,24 +120,26 @@ Each reference file contains the following topics. Use this section to determine
 - `references/topology-pfc-vienna.md`
   - Single-phase boost PFC dual-loop control, feedforward compensation, zero-crossing distortion
   - Three-phase Vienna rectifier dq-frame control, capacitor voltage balance, sector detection
-  - THD optimization strategies, topology-specific protection, STM32G4 HRTIM/COMP/OPAMP usage
+  - THD optimization strategies, topology-specific protection, current-loop role, and STM32G4 HRTIM/COMP/OPAMP usage
 
 - `references/topology-dcdc-converters.md`
   - Buck converter control modes: voltage-mode, peak current mode (PCMC), average current mode (ACMC)
   - Boost converter RHP zero analysis and bandwidth limitation
   - Buck-boost mode transition, CCM/DCM boundary detection, synchronous rectification dead-time
+  - Topology-specific loop-speed tendencies including high-frequency bidirectional buck-boost considerations
   - Multi-phase interleaving, HRTIM dead-time configuration, topology-specific protection
 
 - `references/topology-llc-psfb.md`
   - LLC resonant converter frequency control, frequency-to-timer conversion, burst mode
   - PSFB phase-shift control, duty loss compensation, ZVS conditions for leading/lagging legs
   - Soft-start strategies for isolated converters, transformer saturation prevention
+  - Resonant-stage control-loop role versus standard PWM current-loop assumptions
 
 - `references/topology-inverter-grid.md`
   - Grid-tied inverter dq-frame current control, grid voltage feedforward, cross-coupling decoupling
   - Off-grid inverter voltage-mode control, self-generated angle reference
   - Space Vector Modulation (SVM), anti-islanding (IEEE 1547), harmonic compensation with PR controllers
-  - MPPT Perturb & Observe integration, single-phase inverter specifics
+  - MPPT Perturb & Observe integration, single-phase inverter specifics, and filter/PLL-limited current-loop behavior
 
 - `references/stm32g4-capability-matrix.md`
   - STM32G4 family-level assumptions versus part-specific verification points

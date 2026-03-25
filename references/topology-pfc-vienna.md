@@ -92,6 +92,11 @@ pfc->duty = pi_update(&pfc->current_pi, pfc->i_ref, pfc->i_inductor)
   2. Disable PI integration near zero-crossing (|sin(θ)| < 0.05)
   3. Use feedforward-dominant control near crossing region
 
+### Loop-Speed Tendency
+- **Current Loop Role**: Inner current loop is the main dynamic loop and is usually much faster than the outer bus-voltage loop
+- **Frequency Constraint**: Loop-speed choice is shaped by current-sense delay, zero-crossing behavior, and PWM/ADC synchronization quality, not just MCU headroom
+- **Practical Tuning Bias**: PFC current loops can be fast, but waveform tracking and distortion control usually matter more than pushing ISR rate to the maximum possible value
+
 ## 2. Three-Phase Vienna Rectifier
 
 ### Topology Characteristics
@@ -150,6 +155,10 @@ uint8_t vienna_detect_sector(float32_t va, float32_t vb, float32_t vc) {
     return sector_map[sector];
 }
 ```
+
+### Vienna Loop-Speed Tendency
+- **Current Loop Role**: dq current loop remains the fast loop, while bus-voltage and capacitor-balance loops run more slowly
+- **Frequency Constraint**: Sampling quality, sector logic, dead-time distortion, and bus-balance interaction often limit aggressive loop tuning before raw MCU throughput does
 
 ## 3. THD Optimization Strategies
 
