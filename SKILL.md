@@ -306,7 +306,9 @@ Without actual compile output/map/stats/testing data, only “estimate/mock vali
 - specify sampling frequency
 - specify bandwidth recommendation
 - specify lock behavior
-- describe impact of distortion/unbalance/bias- leverage CORDIC for trigonometric calculations in angle estimation- if asked “PLL extreme/hot-path/lock-state template”, read ref file
+- describe impact of distortion/unbalance/bias
+- leverage CORDIC for trigonometric calculations in angle estimation
+- if asked "PLL extreme/hot-path/lock-state template", read ref file
 
 ### LPF / NOTCH / IIR 2P2Z / PR
 
@@ -362,7 +364,8 @@ Also triggers on phrases like:
 - “PR optimized/LPF optimized/NOTCH FILTER/2P2Z/biquad/IIR”
 - “PLL extreme/SRF-PLL optimized/DSOGI-PLL/dq optimized/Park optimized”
 - “fast/slow loop layering/ISR scheduling/precomputed coefficients/controller integrator recovery”
-- “OVP recovery/recoverable protection/RUN substate/fault chain/state observation”- "architecture patterns/data flow pipeline/configuration-driven design"
+- "OVP recovery/recoverable protection/RUN substate/fault chain/state observation"
+- "architecture patterns/data flow pipeline/configuration-driven design"
 - "performance optimization/cycle budget/memory layout/hardware acceleration"
 - "code quality/MISRA compliance/unit testing/static analysis"
 - "CI/CD pipeline/documentation generation/release management/DevOps"
