@@ -170,6 +170,16 @@ buckboost_mode_t buckboost_detect_mode(float32_t v_in, float32_t v_out,
 }
 ```
 
+### Bidirectional Buck-Boost Notes
+
+- **Typical Use Cases**: Battery charge/discharge, DC bus stabilizer, energy storage interface, regenerative power flow
+- **Control Requirement**: Bidirectional current control usually dominates the design; voltage or power loop runs outside it
+- **Direction Handling**: Explicitly define positive current direction and keep the sign convention consistent across ADC scaling, PI limits, and protection thresholds
+- **Transition Risk**: Charging/discharging polarity changes can expose dead-time distortion, current offset bias, and integrator carry-over if restart logic is not explicit
+- **Frequency Range**: High-frequency designs may run `100–200 kHz` switching / fast current loop when magnetic size, ripple, or power-density targets justify it, but only with a very lean ISR path
+- **ISR Implication**: At these rates, precompute coefficients, avoid heavy branching, keep soft protection out of the hot path, and rely on hardware trip mechanisms for immediate fault response
+- **Sampling Implication**: ADC trigger placement, current-sense amplifier settling, and synchronous sampling become first-order design constraints rather than secondary tuning details
+
 ## 4. CCM / DCM Boundary
 
 ### Detection and Handling

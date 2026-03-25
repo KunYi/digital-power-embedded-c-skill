@@ -204,13 +204,18 @@ peripheral set.
 Default assumption template, explicitly stated in output:
 - MCU: `STM32G4xx` (e.g., STM32G474 / STM32G431)
 - compiler: `arm-none-eabi-gcc` or `STM32CubeIDE` (C99/C11 compatible)
-- fast ISR: `40 kHz`
-- slow loop: `10 kHz`
+- fast ISR: `40 kHz` conservative default for general digital power discussion
+- slow loop: `10 kHz` conservative default, or typically `fast loop / 4` to `fast loop / 20`
 - background task: `1 ms`
 - math type: `float32_t`
 - PWM update: `TIM1/TIM8 update event at counter zero`
 - ADC trigger: `TIM1/TIM8 PWM synchronized to switching period`
 - code style: `MISRA-oriented, no dynamic memory, no recursion`
+
+For high-frequency digital power stages such as tightly optimized
+bidirectional buck-boost converters, the fast loop may be significantly
+higher (for example `100–200 kHz`) if the ISR hot path, ADC timing, and
+protection path are explicitly designed for it.
 
 ### 2. Identify Task Type Before Choosing Output Format
 
