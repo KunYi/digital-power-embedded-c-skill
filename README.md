@@ -2,6 +2,11 @@
 
 An AI skill focused on embedded C development for digital power systems, particularly targeting STM32G4xx microcontrollers. This skill provides expert guidance on control algorithms, state machines, protection designs, and engineering best practices for digital power projects including PFC, Vienna rectifiers, buck/boost converters, LLC resonant converters, PSFB, and grid-tied/off-grid inverters. Compatible with various AI coding assistants such as VS Code Copilot, Claude Code, Codex, and others that support skill-based extensions.
 
+This repository is a guidance and reference package, not a validated firmware
+project. Code snippets and timing notes should be treated as engineering
+starting points and verified against the target topology, MCU part number,
+toolchain, and measured hardware behavior.
+
 ## Features
 
 - **Control Algorithm Implementation**: PI, PR, PLL, dq-transform, and various filter implementations (LPF, NOTCH, IIR 2P2Z)
@@ -51,6 +56,7 @@ The skill includes comprehensive reference materials covering:
 - `performance-analysis-optimization.md`: Cycle budget and memory optimization
 - `code-quality-testing.md`: Code quality and testing practices
 - `engineering-practices-devops.md`: Development and deployment practices
+- `stm32g4-capability-matrix.md`: STM32G4 family assumptions and feature boundaries
 
 ## Contributing
 

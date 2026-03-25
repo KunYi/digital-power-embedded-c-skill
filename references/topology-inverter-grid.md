@@ -244,8 +244,10 @@ void anti_island_check(anti_island_t *ai) {
  *         For off-grid with nonlinear loads: 3rd, 5th, 7th harmonics
  *
  * @note   Each PR controller adds computational cost.
- *         Typical budget: 3-4 harmonic compensators maximum in ISR.
- *         Use slow-loop update for harmonic compensator integrators.
+ *         The safe count depends on ISR frequency, compiler output, and the
+ *         rest of the control stack, so validate on target hardware.
+ *         Use slow-loop coefficient management and only keep true sample-rate
+ *         updates in the fast path.
  */
 typedef struct {
     float32_t kr;           /* Resonant gain                        */

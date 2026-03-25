@@ -160,7 +160,8 @@ void type2_comp_design(biquad_t *comp, float32_t fc_hz,
  *           s₁ = b₁×x₀ − a₁×y₀ + s₂
  *           s₂ = b₂×x₀ − a₂×y₀
  *
- * @note   Computation: 5 multiplies, 4 adds = ~8 cycles on FPU
+ * @note   Arithmetic cost is low, but the real execution time still depends
+ *         on compiler output, inlining, and memory placement.
  *         States s1, s2 MUST be cleared on fault to prevent wind-up
  */
 static inline float32_t comp_2p2z_update(biquad_t *comp,
@@ -240,9 +241,11 @@ static inline bool biquad_is_stable(const biquad_t *bq) {
 
 ## 5. STM32G4 Usage
 
-- Prefer `arm_biquad_cascade_df2T_f32()` for multi-stage filtering in production
+- Prefer `arm_biquad_cascade_df2T_f32()` when it integrates cleanly with the
+  project and its behavior has been verified in the target build
 - For Q31 fixed-point: `arm_biquad_cascade_df2T_q31()` with proper block size
 - Coefficient update (if adaptive): compute in float during slow task, convert to Q31 if needed
 - Synchronize coefficient changes with control loops to avoid transient glitches
 - Clear filter states on any coefficient change to prevent output spikes
-- Typical budget: notch filter ≈ 10 cycles, dual-biquad chain ≈ 20 cycles on Cortex-M4 FPU
+- Treat notch and dual-biquad timing as estimates until measured on the
+  target hardware and compiler configuration

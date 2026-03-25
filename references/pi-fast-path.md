@@ -15,12 +15,12 @@ path ownership is explicit.
 
 ### Standard PI
 - Full computation: reference/feedback input + error calc + P-term + I-term accumulation + anti-windup + saturation
-- Cycle count: ~15-20 cycles on STM32G4 FPU
+- Exact execution cost depends on compiler options, inlining, and memory placement
 - Suitable for 10kHz loops
 
 ### Fast-path PI
 - Optimized for hot-path: minimize branches, precompute constants
-- Cycle count: ~8-12 cycles
+- Usually lighter than the standard form, but confirm on target hardware
 - Suitable for 20-40kHz ISR loops
 
 ## 2. Fast-path Implementation Techniques

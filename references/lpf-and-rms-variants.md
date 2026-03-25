@@ -150,7 +150,8 @@ static inline void rms_accumulate(rms_calc_t *rms, float32_t sample) {
 
 /**
  * @brief  Compute RMS — call from slow task (1ms or per-window).
- *         Contains sqrtf() which is expensive (~14 cycles on FPU).
+ *         Contains sqrtf(), so keep it out of the fast ISR unless target
+ *         profiling shows the cost is acceptable.
  * @return true if new RMS value is available
  */
 bool rms_compute(rms_calc_t *rms) {

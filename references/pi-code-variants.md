@@ -97,7 +97,9 @@ void pi_init(pi_controller_t *pi, float32_t kp, float32_t ki,
  * @param  feedback  Feedback measurement [engineering unit]
  * @return Saturated output [engineering unit]
  *
- * @note   Cycle count: ~15-20 cycles on STM32G4 FPU
+ * @note   Execution cost is usually small on STM32G4-class FPUs, but
+ *         measure on target hardware before treating it as safe for a
+ *         specific ISR budget.
  */
 float32_t pi_update(pi_controller_t *pi, float32_t reference,
                     float32_t feedback) {
@@ -164,7 +166,8 @@ void pi_reset(pi_controller_t *pi, float32_t init_value) {
  *
  * @note   Anti-windup uses simple integrator clamping (no back-calc)
  *         to eliminate extra multiply. Monitoring deferred to slow loop.
- *         Cycle count: ~8-12 cycles on STM32G4 FPU.
+ *         Execution cost is typically lower than the standard form, but
+ *         verify the real gain on target hardware and compiler settings.
  */
 typedef struct {
     float32_t kp;
@@ -208,8 +211,9 @@ keep using the standard `pi_update(pi, reference, feedback)` API.
  *         All state and monitoring deferred to slow loop.
  *
  * @note   Use ONLY when profiling confirms PI is the bottleneck.
- *         Place in RAMFUNC section for zero flash wait states.
- *         Cycle count: ~5-7 cycles on STM32G4 FPU.
+ *         Place in RAMFUNC section only if target profiling shows a real
+ *         worst-case latency benefit.
+ *         The extra specialization must be justified by measurement.
  *
  *   IMPORTANT: This sacrifices debuggability. The integrator state
  *   is only readable via memory watch or slow-loop snapshot.
@@ -332,6 +336,7 @@ q31_t pi_q31_update(pi_q31_t *pi, q31_t error) {
 - Use `float32_t` (FPU single-precision) for all PI computations
 - Compiler flags: `-mcpu=cortex-m4 -mfpu=fpv4-sp-d16 -mfloat-abi=hard`
 - ISR policy: PI computation should complete in < 1/3 of switching period
-- Place extreme PI in `.ramfunc` section for zero wait states from flash
+- Place extreme PI in `.ramfunc` only if target profiling shows a measurable
+  worst-case latency improvement
 - Use DWT cycle counter to verify actual cycle budget during development
 - Coordinate integrator reset across voltage/current loops on protection events

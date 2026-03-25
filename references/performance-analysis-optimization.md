@@ -1,5 +1,18 @@
 # Performance Analysis and Optimization (Reference)
 
+## Evidence Levels For Numeric Claims
+
+When quoting timing, throughput, or latency numbers in digital power code
+reviews or implementations, distinguish clearly between:
+
+- **Hardware-documented value**: taken from MCU or core documentation
+- **Instruction-level estimate**: derived from Arm instruction timing tables,
+  usually assuming ideal memory behavior and excluding compiler effects
+- **Target measurement**: captured on the real firmware build and hardware
+
+Do not present instruction-level estimates as if they were measured ISR
+execution times.
+
 ## 1. Real-Time Performance Metrics
 
 ### Cycle Budget Analysis
@@ -44,7 +57,9 @@ void TIM1_UP_IRQHandler(void) {
 ### Fixed-Point vs Floating-Point Tradeoffs
 - **Floating-Point Advantages**: Easier development, automatic scaling, FPU acceleration
 - **Fixed-Point Advantages**: Deterministic execution, no rounding errors, smaller code size
-- **STM32G4 Decision**: Use float32_t for development, consider Q15/Q31 for production if needed
+- **STM32G4 Decision**: `float32_t` is a reasonable default for many STM32G4
+  projects; switch to Q15/Q31 only when measurement, code size, or determinism
+  requirements justify it
 
 ### Lookup Table Optimization
 - **When to Use**: Trigonometric functions, nonlinear mappings, calibration curves
@@ -109,7 +124,8 @@ __attribute__((aligned(32))) float32_t dma_adc_buffer[ADC_BUFFER_SIZE];
 ### Linker Optimizations
 - **Section Placement**: Place frequently used code in faster memory regions
 - **Dead Code Elimination**: Use `--gc-sections` to remove unused functions
-- **RAM Functions**: Place critical ISRs in RAM for zero wait states
+- **RAM Functions**: Consider placing critical ISRs in RAM only after
+  measuring whether it materially improves worst-case latency
 
 ```c
 // Linker script snippet for RAM functions

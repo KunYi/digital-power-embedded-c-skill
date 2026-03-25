@@ -34,6 +34,7 @@ When the issue involves specific implementation patterns, read these references 
 - Buck/boost/buck-boost control modes (voltage-mode, PCMC, ACMC), CCM/DCM boundary, synchronous rectification: read `references/topology-dcdc-converters.md`
 - LLC frequency control, PSFB phase-shift control, ZVS conditions, burst mode, soft-start for isolated converters: read `references/topology-llc-psfb.md`
 - Grid-tied inverter dq current control, off-grid voltage control, SVM, anti-islanding, MPPT, harmonic compensation: read `references/topology-inverter-grid.md`
+- MCU feature assumptions, part-to-part availability, and when to verify STM32G4 peripheral presence: read `references/stm32g4-capability-matrix.md`
 
 ## Reference Documents (Content Summary)
 
@@ -138,6 +139,11 @@ Each reference file contains the following topics. Use this section to determine
   - Space Vector Modulation (SVM), anti-islanding (IEEE 1547), harmonic compensation with PR controllers
   - MPPT Perturb & Observe integration, single-phase inverter specifics
 
+- `references/stm32g4-capability-matrix.md`
+  - STM32G4 family-level assumptions versus part-specific verification points
+  - Feature availability guidance for CORDIC, HRTIM, COMP, OPAMP, ADC pairings, and memory sizing
+  - Suggested “verify before claiming” checklist for hardware-dependent recommendations
+
 ## Highest Priority Preferences
 
 - Prefer `float32_t`
@@ -189,6 +195,11 @@ When user requirements are incomplete, first fill in context and clearly state �
 - existing project framework / naming convention
 
 If not provided, use minimal common digital power assumptions but explicitly note them; don’t pretend user gave it.
+
+If the answer depends on STM32G4 peripheral availability, explicitly state
+that part-number verification is still required and refer to the capability
+matrix reference rather than assuming every STM32G4 device exposes the same
+peripheral set.
 
 Default assumption template, explicitly stated in output:
 - MCU: `STM32G4xx` (e.g., STM32G474 / STM32G431)
@@ -393,6 +404,7 @@ Quick-scan index of all available reference files. Read as needed; do not expand
 - `references/topology-dcdc-converters.md`
 - `references/topology-llc-psfb.md`
 - `references/topology-inverter-grid.md`
+- `references/stm32g4-capability-matrix.md`
 
 ## Final Goal
 

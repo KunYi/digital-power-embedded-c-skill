@@ -228,8 +228,11 @@ float32_t complex_resonator_update(complex_resonator_t *cr,
 
 ## 5. STM32G4 Points
 
-- CMSIS DSP: use `arm_biquad_cascade_df2T_f32()` for optimized multi-stage filtering
-- FPU flags: `-mfpu=fpv4-sp-d16 -mfloat-abi=hard` mandatory for float biquad performance
+- CMSIS DSP: use `arm_biquad_cascade_df2T_f32()` when it integrates cleanly with the
+  project and its behavior has been verified in the target build
+- FPU flags: `-mfpu=fpv4-sp-d16 -mfloat-abi=hard` are the normal starting point
+  for hard-float STM32G4 builds; verify against the actual toolchain setup
 - CORDIC: use for adaptive-frequency resonator coefficient update (when PLL tracks grid)
 - Avoid branch-heavy fault handling in fast ISR (≥16 kHz); defer safety checks to 1ms task
-- Typical cycle budget: single biquad ≈ 8-10 cycles on Cortex-M4 FPU
+- Treat single-biquad timing as an estimate until measured on the target
+  hardware and compiler configuration
