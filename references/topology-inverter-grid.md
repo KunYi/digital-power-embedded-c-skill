@@ -55,17 +55,13 @@ typedef struct {
 /* DC bus voltage loop → generates d-axis current reference */
 void grid_inv_dc_loop(grid_inverter_t *inv, float32_t vdc,
                       float32_t vdc_ref) {
-    float32_t vdc_error = vdc_ref - vdc;
-    inv->id_ref = pi_update(&inv->vdc_pi, vdc_error);
+    inv->id_ref = pi_update(&inv->vdc_pi, vdc_ref, vdc);
 }
 
 /* dq current loop — fast ISR (10–40 kHz) */
 void grid_inv_current_loop(grid_inverter_t *inv) {
-    float32_t id_error = inv->id_ref - inv->id;
-    float32_t iq_error = inv->iq_ref - inv->iq;
-
-    float32_t vd_pi = pi_update(&inv->id_pi, id_error);
-    float32_t vq_pi = pi_update(&inv->iq_pi, iq_error);
+    float32_t vd_pi = pi_update(&inv->id_pi, inv->id_ref, inv->id);
+    float32_t vq_pi = pi_update(&inv->iq_pi, inv->iq_ref, inv->iq);
 
     /* Cross-coupling decoupling + grid voltage feedforward */
     inv->vd_out = vd_pi - inv->omega_l * inv->iq + inv->vd_ff;
@@ -134,16 +130,12 @@ void offgrid_angle_update(offgrid_inverter_t *inv, float32_t dt) {
 /* Dual-loop control in dq frame */
 void offgrid_control_loop(offgrid_inverter_t *inv) {
     /* Outer voltage loop → current reference */
-    float32_t vd_err = inv->vd_ref - inv->vd;
-    float32_t vq_err = inv->vq_ref - inv->vq;
-    float32_t id_ref = pi_update(&inv->vd_pi, vd_err);
-    float32_t iq_ref = pi_update(&inv->vq_pi, vq_err);
+    float32_t id_ref = pi_update(&inv->vd_pi, inv->vd_ref, inv->vd);
+    float32_t iq_ref = pi_update(&inv->vq_pi, inv->vq_ref, inv->vq);
 
     /* Inner current loop → modulation voltage */
-    float32_t id_err = id_ref - inv->id;
-    float32_t iq_err = iq_ref - inv->iq;
-    float32_t vd_out = pi_update(&inv->id_pi, id_err);
-    float32_t vq_out = pi_update(&inv->iq_pi, iq_err);
+    float32_t vd_out = pi_update(&inv->id_pi, id_ref, inv->id);
+    float32_t vq_out = pi_update(&inv->iq_pi, iq_ref, inv->iq);
 
     /* Apply inverse Park → SVM */
 }
@@ -151,71 +143,47 @@ void offgrid_control_loop(offgrid_inverter_t *inv) {
 
 ## 3. Space Vector Modulation (SVM)
 
-### Sector Detection and Duty Calculation
+### Duty Calculation
 
 ```c
 /**
- * @brief  Space Vector PWM for three-phase inverter.
- *         Converts αβ voltage reference to switching times.
+ * @brief  Space-vector-equivalent duty computation using common-mode
+ *         injection. This avoids sector-specific bookkeeping while
+ *         producing centered three-phase duties for a normalized αβ
+ *         voltage reference.
  *
  * @param  v_alpha  α-axis voltage reference (normalized to Vdc/2)
  * @param  v_beta   β-axis voltage reference (normalized to Vdc/2)
- * @param  t_a      Output: phase A switching time [0..1]
- * @param  t_b      Output: phase B switching time [0..1]
- * @param  t_c      Output: phase C switching time [0..1]
+ * @param  t_a      Output: phase A duty [0..1]
+ * @param  t_b      Output: phase B duty [0..1]
+ * @param  t_c      Output: phase C duty [0..1]
  */
 void svm_calculate(float32_t v_alpha, float32_t v_beta,
                    float32_t *t_a, float32_t *t_b, float32_t *t_c) {
-    /* Identify sector using sign of three reference voltages */
-    float32_t v_ref1 =  v_beta;
-    float32_t v_ref2 = (-v_beta + 1.732051f * v_alpha) * 0.5f;
-    float32_t v_ref3 = (-v_beta - 1.732051f * v_alpha) * 0.5f;
+    /* Convert αβ to three-phase references normalized to Vdc/2. */
+    float32_t v_a = v_alpha;
+    float32_t v_b = -0.5f * v_alpha + 0.8660254f * v_beta;
+    float32_t v_c = -0.5f * v_alpha - 0.8660254f * v_beta;
 
-    uint8_t sector = 0U;
-    if (v_ref1 > 0.0f) { sector  = 1U; }
-    if (v_ref2 > 0.0f) { sector += 2U; }
-    if (v_ref3 > 0.0f) { sector += 4U; }
+    /* Common-mode injection centers the three phase commands and
+       produces the same duty result as centered SVPWM while staying in
+       the linear modulation region. */
+    float32_t v_max = v_a;
+    float32_t v_min = v_a;
+    if (v_b > v_max) { v_max = v_b; }
+    if (v_c > v_max) { v_max = v_c; }
+    if (v_b < v_min) { v_min = v_b; }
+    if (v_c < v_min) { v_min = v_c; }
 
-    /* Sector mapping and T1, T2 timing calculation */
-    float32_t t1, t2, t0;
+    float32_t v_offset = 0.5f * (v_max + v_min);
 
-    switch (sector) {
-        case 1:  /* Sector I */
-            t1 = v_ref2;  t2 = v_ref1;
-            break;
-        case 2:  /* Sector II */
-            t1 = -v_ref3; t2 = -v_ref1;
-            break;
-        case 3:  /* Sector III */
-            t1 = v_ref1;  t2 = v_ref3;
-            break;
-        case 4:  /* Sector IV */
-            t1 = -v_ref1; t2 = -v_ref2;
-            break;
-        case 5:  /* Sector V */
-            t1 = v_ref3;  t2 = -v_ref1;
-            break;
-        case 6:  /* Sector VI */
-            t1 = -v_ref2; t2 = v_ref1;
-            break;
-        default:
-            t1 = 0.0f; t2 = 0.0f;
-            break;
-    }
+    *t_a = 0.5f + 0.5f * (v_a - v_offset);
+    *t_b = 0.5f + 0.5f * (v_b - v_offset);
+    *t_c = 0.5f + 0.5f * (v_c - v_offset);
 
-    /* Overmodulation clamp */
-    if ((t1 + t2) > 1.0f) {
-        float32_t scale = 1.0f / (t1 + t2);
-        t1 *= scale;
-        t2 *= scale;
-    }
-
-    t0 = 1.0f - t1 - t2;
-
-    /* Symmetric distribution — center-aligned PWM */
-    *t_a = t0 * 0.5f;
-    *t_b = *t_a + t1;
-    *t_c = *t_b + t2;
+    if (*t_a > 1.0f) { *t_a = 1.0f; } else if (*t_a < 0.0f) { *t_a = 0.0f; }
+    if (*t_b > 1.0f) { *t_b = 1.0f; } else if (*t_b < 0.0f) { *t_b = 0.0f; }
+    if (*t_c > 1.0f) { *t_c = 1.0f; } else if (*t_c < 0.0f) { *t_c = 0.0f; }
 }
 ```
 

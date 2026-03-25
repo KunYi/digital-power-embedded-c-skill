@@ -71,14 +71,14 @@ float32_t fast_sin(float32_t angle_rad) {
 
 ### Loop Unrolling and SIMD
 - **Manual Unrolling**: Reduce loop overhead for small fixed-size loops
-- **SIMD Potential**: STM32G4 has single-precision FPU, consider vector operations
+- **Instruction-Level Optimization**: Cortex-M4 can benefit from careful inlining and data locality, but it does not provide general-purpose SIMD acceleration for `float32_t`
 - **Code Size Impact**: Balance performance vs flash usage
 
 ## 3. Memory Layout Optimization
 
 ### Data Structure Alignment
-- **STM32G4 Cache**: 4KB I-cache, 4KB D-cache, align structures to 32-byte boundaries
-- **DMA Requirements**: Align buffers to cache line boundaries
+- **Alignment**: Align DMA buffers and frequently accessed structures to natural word boundaries; only apply stricter alignment when a measured benefit exists
+- **DMA Requirements**: Verify alignment and access width requirements against the specific peripheral and memory path in use
 - **Stack Usage**: Minimize stack depth in ISRs
 
 ```c
@@ -102,7 +102,7 @@ __attribute__((aligned(32))) float32_t dma_adc_buffer[ADC_BUFFER_SIZE];
 ## 4. Compiler Optimization Techniques
 
 ### GCC Optimization Flags
-- **STM32G4 Recommended**: `-O2 -ffast-math -funroll-loops -fomit-frame-pointer`
+- **STM32G4 Starting Point**: `-O2` with target FPU flags is a reasonable baseline; add options such as `-ffast-math` only after reviewing numerical side effects
 - **Debug vs Release**: `-O0` for debugging, `-O2/-O3` for performance
 - **Floating Point**: `-mfloat-abi=hard -mfpu=fpv4-sp-d16`
 
@@ -134,9 +134,10 @@ __attribute__((aligned(32))) float32_t dma_adc_buffer[ADC_BUFFER_SIZE];
 - **Integration**: Combine with FPU for complex calculations
 
 ```c
-// STM32G4 CORDIC: Q1.31 format, angle range [-1.0, 1.0) maps to [-π, +π)
-// Precision = number of iterations (1~15), higher = more accurate but slower
-// At precision=6: ~20-bit accuracy, ~6 cycles; precision=15: full 32-bit, ~15 cycles
+// STM32G4 CORDIC uses a fixed-point interface.
+// Precision = number of iterations (1~15), higher = more accurate but slower.
+// Exact latency and precision depend on device configuration and surrounding
+// register access overhead, so profile on target hardware.
 
 // Convert radian angle to Q1.31 CORDIC input: q31 = angle_rad / π
 // Output is two sequential reads: first cos, then sin (both Q1.31)

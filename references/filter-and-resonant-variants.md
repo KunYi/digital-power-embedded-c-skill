@@ -109,7 +109,8 @@ void pr_reset(pr_controller_t *pr) {
 
 ### Execution Strategy
 - Keep P-term in fast ISR, update resonant integrator in same ISR for tracking accuracy
-- If cycle budget is tight, update resonant term at half the ISR rate (every other cycle)
+- Do not decimate the resonant update rate unless the coefficients are
+  redesigned for the new effective sampling period
 - Anti-windup: clamp resonant output and saturate combined output
 
 ## 2. General Biquad (IIR 2P2Z) Filter

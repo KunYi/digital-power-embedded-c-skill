@@ -14,7 +14,8 @@
 - **Rule 13.2**: Testing float for equality
 
 ```c
-// MISRA-compliant register access
+// Typical low-level register access pattern.
+// In many codebases this requires a documented MISRA deviation.
 #define ADC1_BASE_ADDR    (0x50040000UL)
 #define ADC_ISR_OFFSET    (0x00UL)
 #define ADC_ISR_ADDR      (ADC1_BASE_ADDR + ADC_ISR_OFFSET)
@@ -85,16 +86,16 @@ float32_t mock_adc_read(void) {
 
 void test_pi_controller_basic(void) {
     pi_controller_t pi;
-    pi_init(&pi, 0.1f, 0.01f, 0.0f, 10.0f);
+    pi_init(&pi, 0.5f, 0.0f, 25.0e-6f, -10.0f, 10.0f, 0.2f);
 
     float32_t output = pi_update(&pi, 2.0f, 1.5f);  // ref=2.0, fb=1.5
 
-    TEST_ASSERT_FLOAT_WITHIN(0.1f, 0.25f, output);  // Expected P-term
+    TEST_ASSERT_FLOAT_WITHIN(0.01f, 0.25f, output);  // Expected P-term
 }
 
 void test_pi_anti_windup(void) {
     pi_controller_t pi;
-    pi_init(&pi, 1.0f, 0.1f, 0.0f, 1.0f);  // Small output limit
+    pi_init(&pi, 1.0f, 0.1f, 25.0e-6f, -1.0f, 1.0f, 0.5f);  // Small output limit
 
     // Drive integrator high
     for (int i = 0; i < 100; i++) {

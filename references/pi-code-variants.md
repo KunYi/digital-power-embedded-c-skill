@@ -21,6 +21,14 @@
 
 ## 1. Standard PI — Full Implementation
 
+The standard project-wide interface is:
+- `pi_init(pi, kp, ki, ts, out_min, out_max, kb)`
+- `pi_update(pi, reference, feedback)`
+
+Use this form in architecture, topology, and integration examples unless
+there is a specific reason to pass a precomputed error into a specialized
+fast-path helper.
+
 ### Data Structure
 
 ```c
@@ -186,6 +194,11 @@ static inline float32_t pi_fast_update(pi_fast_t *pi,
 }
 ```
 
+Use `pi_fast_update()` only when the caller already owns the `error` signal
+in a hot path and wants to avoid the extra `reference - feedback` subtraction
+inside the helper. For cross-module examples and generic control design,
+keep using the standard `pi_update(pi, reference, feedback)` API.
+
 ## 3. Extreme Hot-path PI
 
 ```c
@@ -221,6 +234,10 @@ static inline float32_t pi_extreme_update(float32_t error) {
     return out;
 }
 ```
+
+Like `pi_fast_update()`, this extreme variant consumes a precomputed error
+on purpose. It is an optimization-specific helper, not the default module
+interface used in the rest of the references.
 
 ## 4. Anti-windup Variants
 

@@ -24,7 +24,8 @@ typedef struct {
 ## 1. SRF-PLL (Synchronous Reference Frame PLL)
 - Core: Park transform to dq and PI control on q-axis
 - Angle update: theta += w_est*Ts
-- Bandwidth: choose small fraction of switching frequency (e.g., 1-3% of fsw) for stable grid lock
+- Bandwidth: choose based on PLL update rate and grid disturbance goals,
+  typically far below switching frequency and often in the tens-of-Hz range
 
 ## 2. DSOGI-PLL
 - Use second-order generalized integrator to reject harmonics
@@ -41,7 +42,7 @@ typedef struct {
 - Handle unbalanced and distorted grid by reducing bandwidth and adding notch compensation
 
 ## 5. STM32 suggestions
-- Use FPU for trig operations if required; precompute sin/cos table for speed
+- Use FPU or CORDIC for trig operations as appropriate for the platform
 - Cycle budget: keep PLL in slow loop (1kHz) or execute in high-priority but with limited ops
-- If using DMA + ADC, synchronize sampling to line frequency for accurate phase measurement
+- If using DMA + ADC, keep voltage sampling coherent and time-stamped relative to the PLL update period
 - Leverage CORDIC for sin/cos calculations in angle computation for better performance

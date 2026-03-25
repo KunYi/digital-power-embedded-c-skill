@@ -27,8 +27,7 @@ typedef struct {
 } buck_vmode_t;
 
 void buck_voltage_mode_update(buck_vmode_t *bk) {
-    float32_t v_error = bk->v_out_ref - bk->v_out;
-    bk->duty = pi_update(&bk->voltage_pi, v_error);
+    bk->duty = pi_update(&bk->voltage_pi, bk->v_out_ref, bk->v_out);
 
     /* Optional: input voltage feedforward for improved line rejection */
     /* bk->duty += bk->v_out_ref / bk->v_in;  (add to PI output) */
@@ -56,8 +55,7 @@ typedef struct {
 } buck_pcmc_t;
 
 void buck_pcmc_voltage_loop(buck_pcmc_t *bk) {
-    float32_t v_error = bk->v_out_ref - bk->v_out;
-    bk->i_peak_ref = pi_update(&bk->voltage_pi, v_error);
+    bk->i_peak_ref = pi_update(&bk->voltage_pi, bk->v_out_ref, bk->v_out);
 }
 
 /**
@@ -101,13 +99,11 @@ typedef struct {
 } buck_acmc_t;
 
 void buck_acmc_slow_loop(buck_acmc_t *bk) {
-    float32_t v_error = bk->v_out_ref - bk->v_out;
-    bk->i_ref = pi_update(&bk->voltage_pi, v_error);
+    bk->i_ref = pi_update(&bk->voltage_pi, bk->v_out_ref, bk->v_out);
 }
 
 void buck_acmc_fast_loop(buck_acmc_t *bk) {
-    float32_t i_error = bk->i_ref - bk->i_inductor;
-    bk->duty = pi_update(&bk->current_pi, i_error);
+    bk->duty = pi_update(&bk->current_pi, bk->i_ref, bk->i_inductor);
 }
 ```
 
@@ -225,7 +221,9 @@ void ccm_dcm_detect(ccm_dcm_state_t *state, float32_t i_avg,
 ```c
 /* HRTIM dead-time configuration example */
 void hrtim_deadtime_config(uint16_t rising_ns, uint16_t falling_ns) {
-    /* HRTIM clock = 170 MHz × 32 = 5.44 GHz effective (184 ps resolution) */
+    /* Convert requested dead-time to HRTIM ticks.
+       Verify the exact resolution and prescaler settings against the
+       selected STM32G4 part and HRTIM clock tree before use. */
     uint16_t dt_rising  = (uint16_t)(rising_ns * 1000U / 184U);
     uint16_t dt_falling = (uint16_t)(falling_ns * 1000U / 184U);
 

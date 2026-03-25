@@ -42,10 +42,11 @@ typedef struct {
 } llc_control_t;
 
 void llc_voltage_loop(llc_control_t *llc) {
-    /* Note: error is inverted (fb - ref) because LLC gain
-       decreases with increasing frequency */
-    float32_t v_error = llc->v_out - llc->v_out_ref;
-    float32_t freq_cmd = pi_update(&llc->voltage_pi, v_error);
+    /* Note: reference/feedback are intentionally reversed because LLC gain
+       decreases with increasing frequency. */
+    float32_t freq_cmd = pi_update(&llc->voltage_pi,
+                                   llc->v_out,
+                                   llc->v_out_ref);
 
     /* Clamp to safe operating range */
     if (freq_cmd < llc->freq_min) { freq_cmd = llc->freq_min; }
@@ -147,8 +148,9 @@ typedef struct {
 } psfb_control_t;
 
 void psfb_voltage_loop(psfb_control_t *psfb) {
-    float32_t v_error = psfb->v_out_ref - psfb->v_out;
-    psfb->phase_shift = pi_update(&psfb->voltage_pi, v_error);
+    psfb->phase_shift = pi_update(&psfb->voltage_pi,
+                                  psfb->v_out_ref,
+                                  psfb->v_out);
 
     /* Clamp phase shift */
     if (psfb->phase_shift > psfb->phase_max) {

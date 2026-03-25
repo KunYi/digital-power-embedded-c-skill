@@ -109,11 +109,12 @@ static inline void notch_reset(notch_filter_t *nf) {
  *
  * @param  comp          2P2Z compensator (biquad)
  * @param  fc_hz         Desired crossover frequency [Hz]
- * @param  plant_gain_fc Plant gain at crossover [dB] (to set G0)
+ * @param  plant_gain_mag Plant magnitude at crossover [linear gain]
+ *                        (convert from dB before calling this function)
  * @param  fs_hz         Sampling frequency [Hz]
  */
 void type2_comp_design(biquad_t *comp, float32_t fc_hz,
-                        float32_t plant_gain_at_fc, float32_t fs_hz) {
+                        float32_t plant_gain_mag, float32_t fs_hz) {
     float32_t ts = 1.0f / fs_hz;
 
     /* Zero and pole placement */
@@ -129,7 +130,7 @@ void type2_comp_design(biquad_t *comp, float32_t fc_hz,
     float32_t wp_d = (2.0f / ts) * tanf(wp * ts * 0.5f);
 
     /* Gain to achieve 0dB at crossover */
-    float32_t g0 = 1.0f / plant_gain_at_fc;
+    float32_t g0 = 1.0f / plant_gain_mag;
 
     /* Discrete coefficients via Tustin transform */
     float32_t c1 = 2.0f / ts;
@@ -222,16 +223,15 @@ void type3_comp_reset(type3_comp_t *comp) {
 
 ```c
 /**
- * @brief  Verify biquad stability (poles inside unit circle).
+ * @brief  Quick screening check for obviously unsafe coefficients.
  * @return true if filter is stable
  *
- * @note   Instability indicators:
- *         - |a2| ≥ 1.0: poles on or outside unit circle
- *         - Output grows without bound
- *         - Audible oscillation or relay-like chattering
+ * @note   This is NOT a complete stability proof for all biquad cases.
+ *         Use it only as a coarse guard before full pole or frequency
+ *         response verification.
  */
 static inline bool biquad_is_stable(const biquad_t *bq) {
-    /* Sufficient condition: |a2| < 1 and |a1| < 1 + a2 */
+    /* Conservative heuristic only. */
     float32_t abs_a2 = fabsf(bq->a2);
     float32_t abs_a1 = fabsf(bq->a1);
     return (abs_a2 < 1.0f) && (abs_a1 < (1.0f + bq->a2));

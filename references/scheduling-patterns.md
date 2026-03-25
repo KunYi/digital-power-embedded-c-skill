@@ -23,4 +23,4 @@
 
 ## 5. STM32 guidance
 - In STM32CubeIDE, use HAL_TIM_PWM_Start and HAL_ADC_Start_DMA in init phase
-- In ISR, perform 1-2 push operations, then call `HAL_IncTick`/`SysTick` as required.
+- In control ISR, only do time-critical sampling, control, protection, and flag updates; do not add unrelated tick maintenance to the fast path.

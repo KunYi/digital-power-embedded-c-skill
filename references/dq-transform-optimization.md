@@ -204,8 +204,8 @@ void control_isr(void) {
     park_out_t v_dq = abc_to_dq(va_meas, vb_meas, cos_theta, sin_theta);
 
     /* [5] Control loops in dq frame */
-    float32_t vd_out = pi_update(&id_pi, id_ref - i_dq.d);
-    float32_t vq_out = pi_update(&iq_pi, iq_ref - i_dq.q);
+    float32_t vd_out = pi_update(&id_pi, id_ref, i_dq.d);
+    float32_t vq_out = pi_update(&iq_pi, iq_ref, i_dq.q);
 
     /* [6] Inverse Park → αβ (reuse same sin/cos) */
     clarke_out_t v_ab = dq_to_alphabeta(vd_out, vq_out,
@@ -220,7 +220,8 @@ void control_isr(void) {
 - Clarke transform: only 2 multiplies (using √3 precomputed)
 - Park transform: 4 multiplies (2 sin, 2 cos terms)
 - Inverse Park: 4 multiplies (same as Park)
-- Total pipeline abc→dq→dq→αβ: ~10 multiplies, ~6 cycles with FPU
+- Total arithmetic cost is modest, but final cycle count depends on inlining,
+  memory access, compiler options, and whether trig comes from CORDIC or software.
 
 ### CORDIC vs Software Trigonometry
 
@@ -228,13 +229,13 @@ void control_isr(void) {
 |--------|------------|----------|-------|
 | `arm_sin_f32()` | ~15-20 | Full float | Software, CMSIS DSP |
 | Sine LUT (1024 entries) | ~5-8 | 10-bit | Fixed memory cost |
-| **STM32G4 CORDIC** | **~6** | **20-bit** | **Recommended** |
+| **STM32G4 CORDIC** | **Low, deterministic latency** | **Config-dependent** | **Recommended when available** |
 | `sinf()` (libm) | ~30-50 | Full float | Avoid in ISR |
 
 ## 5. STM32G4 Guidance
 
-- Use CORDIC for all sin/cos: 6 cycles, 20-bit precision, simultaneous sin+cos output
-- Keep full transform pipeline (Clarke + Park + PI + Inverse Park + SVM) within 10–20 cycle budget
+- Use CORDIC for sin/cos when it is available and integration cost is justified
+- Keep the full transform pipeline within the measured ISR budget; do not assume a fixed cycle count without profiling
 - For high-speed (40 kHz): place transform functions in RAMFUNC section
 - Use `static inline` for transform functions to avoid function call overhead
 - If CPU load is critical: consider running transforms at half ISR rate (40 kHz → 20 kHz)

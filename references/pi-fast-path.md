@@ -1,9 +1,20 @@
 # PI Fast Path (Reference)
 
+This note complements [pi-code-variants.md](./pi-code-variants.md).
+
+Default interface policy:
+- Standard module interface: `pi_update(pi, reference, feedback)`
+- Fast-path helper interface: caller precomputes `error = reference - feedback`
+- Extreme hot-path helper interface: caller also passes precomputed error
+
+When writing architecture- or topology-level examples, prefer the standard
+`reference, feedback` API and only drop to error-only helpers when the hot
+path ownership is explicit.
+
 ## 1. Standard vs Fast-path Comparison
 
 ### Standard PI
-- Full computation: error calc + P-term + I-term accumulation + anti-windup + saturation
+- Full computation: reference/feedback input + error calc + P-term + I-term accumulation + anti-windup + saturation
 - Cycle count: ~15-20 cycles on STM32G4 FPU
 - Suitable for 10kHz loops
 
@@ -35,7 +46,7 @@
 - Example structure:
 ```c
 // In ISR
-float error = ref - feedback;
+float error = reference - feedback;
 float p_term = kp * error;
 integral += ki_ts * error;
 float unsaturated = p_term + integral;
@@ -58,3 +69,4 @@ output = arm_clip_f32(unsaturated, min, max);
 - Standard PI in voltage loop (10kHz)
 - Coordinate integrator reset on protection events
 - Ensure consistent scaling across loops
+- Keep the public-facing controller interface consistent across modules; treat error-only fast-path helpers as local ISR optimizations

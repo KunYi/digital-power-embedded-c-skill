@@ -51,8 +51,9 @@ typedef struct {
 
 /* Voltage loop — executed in slow loop (1–10 kHz) */
 void pfc_voltage_loop(pfc_control_t *pfc) {
-    float32_t v_error = pfc->v_bus_ref - pfc->v_bus;
-    float32_t i_amplitude = pi_update(&pfc->voltage_pi, v_error);
+    float32_t i_amplitude = pi_update(&pfc->voltage_pi,
+                                      pfc->v_bus_ref,
+                                      pfc->v_bus);
 
     /* Shape current reference: I_ref = I_amplitude × |sin(θ)| */
     pfc->i_ref = i_amplitude * pfc->sin_theta;
@@ -60,8 +61,7 @@ void pfc_voltage_loop(pfc_control_t *pfc) {
 
 /* Current loop — executed in fast ISR (20–40 kHz) */
 void pfc_current_loop(pfc_control_t *pfc) {
-    float32_t i_error = pfc->i_ref - pfc->i_inductor;
-    pfc->duty = pi_update(&pfc->current_pi, i_error);
+    pfc->duty = pi_update(&pfc->current_pi, pfc->i_ref, pfc->i_inductor);
 }
 ```
 
@@ -81,7 +81,7 @@ float32_t pfc_feedforward(float32_t v_in_rect, float32_t v_bus) {
 }
 
 /* Combined: duty = PI_output + feedforward */
-pfc->duty = pi_update(&pfc->current_pi, i_error)
+pfc->duty = pi_update(&pfc->current_pi, pfc->i_ref, pfc->i_inductor)
           + pfc_feedforward(v_in_rectified, pfc->v_bus);
 ```
 
@@ -124,7 +124,7 @@ typedef struct {
 /* DC bus voltage balance — prevents capacitor voltage drift */
 void vienna_balance_control(vienna_control_t *vc) {
     float32_t v_diff = vc->v_bus_upper - vc->v_bus_lower;
-    float32_t balance_offset = pi_update(&vc->v_balance_pi, v_diff);
+    float32_t balance_offset = pi_update(&vc->v_balance_pi, 0.0f, v_diff);
     /* Inject small offset into d-axis to redistribute power */
     vc->id_ref += balance_offset;
 }

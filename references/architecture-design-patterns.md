@@ -131,8 +131,7 @@ __attribute__((section(".ramfunc")))
 void fast_control_isr(void) {
     // Critical control calculations here
     adc_sample = read_adc();
-    error = reference - adc_sample;
-    output = pi_controller_update(&pi_state, error);
+    output = pi_update(&pi_state, reference, adc_sample);
     update_pwm(output);
 }
 ```

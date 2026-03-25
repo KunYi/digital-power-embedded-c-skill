@@ -31,9 +31,9 @@ typedef struct {
 - Load reduction path: switch from normal vector to safe zero-vector when fault exists
 
 ## 3. PWM shutdown path
-- Immediately set update register to 0% for all channels
-- Set `TIMx->BDTR` MOE=0 (main output enable) for full hardware disable
-- Use `volatile` latch bit to avoid compiler reordering
+- Prefer a hardware trip path first: comparator / fault input / timer break should force PWM off without waiting for software
+- After the hardware trip, software should latch the fault, clear control states, and place PWM outputs in a known safe state
+- If software explicitly disables outputs, set `TIMx->BDTR` MOE=0 (or the equivalent HRTIM fault action) only after confirming the timer-specific shutdown sequence
 
 ## 4. Fault recovery / auto reset
 - On auto reset request, verify: PFC input voltage in-range, temperature normal, no overcurrent
@@ -43,4 +43,4 @@ typedef struct {
 ## 5. STM32 specifics
 - Use BOD/VBAT/ADC comparators for external protection signals
 - Use EXTI interrupts for immediate hardware protection lines
-- Keep software path less than 50us on each pass to avoid watchdog from resetting
+- Keep the software follow-up path short and deterministic so it does not delay fault latching, restart logic, or supervision
