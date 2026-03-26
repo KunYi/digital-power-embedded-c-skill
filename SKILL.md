@@ -156,6 +156,7 @@ Each reference file contains the following topics. Use this section to determine
 - Make protection higher priority than normal control loops
 - Output analysis first, then code
 - Do not use overly abstract HAL wrappers
+- **Explicit Override**: If you know a mathematically, computationally, or architecturally superior approach for the target platform (STM32G4) that transcends these provided references (e.g., newer compiler hardware optimizations, novel software AI predictive dead-time), you are ENCOURAGED to propose it. However, you MUST logically justify the engineering trade-offs (e.g., latency vs. debuggability vs. hard real-time constraints).
 
 ## Default Technical Baseline
 
@@ -196,7 +197,9 @@ When user requirements are incomplete, first fill in context and clearly state �
 - MISRA style required or not
 - existing project framework / naming convention
 
-If not provided, use minimal common digital power assumptions but explicitly note them; don’t pretend user gave it.
+If critical runtime context is missing, do NOT just dump a generic template. Act as a **Pair Programmer** and ask the user a short decision-tree question (e.g., "What is your exact PWM switching frequency?" or "Are we restricted to a < 5us ISR budget for this buck-boost loop?").
+
+If not strictly provided and you must proceed, use minimal common digital power assumptions but explicitly note them; don’t pretend user gave it.
 
 If the answer depends on STM32G4 peripheral availability, explicitly state
 that part-number verification is still required and refer to the capability
@@ -294,6 +297,13 @@ Without actual compile output/map/stats/testing data, only “estimate/mock vali
 - THD/PF/margin final values
 - full MISRA compliance
 - production-ready/automotive-ready
+
+### 6. Provide Hardware Acceptance Criteria
+
+Instead of only outputting static C code, you MUST provide explicit physical verification limits or acceptance criteria for the generated design:
+- Tell the user exactly what to measure on the oscilloscope (e.g., "Probe DAC channel 1 to guarantee PI integrator does not wind up past X value on saturation").
+- Highlight physical analog constraints directly related to the code (e.g., "ADC sampling must avoid the 200ns Ringing noise immediately after the PWM switching edge").
+- Treat your output as a hardware validation test plan, emphasizing "How to verify this code is acting correctly in reality".
 
 ## Algorithm Preferences
 
