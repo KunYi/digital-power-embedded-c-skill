@@ -184,3 +184,12 @@ uint8_t vienna_detect_sector(float32_t va, float32_t vb, float32_t vc) {
 - **OPAMP**: Internal opamps for current sensing amplification (no external amplifier needed)
 - **COMP**: Fast analog comparators for cycle-by-cycle OCP (< 100 ns response)
 - **Dual ADC**: ADC1 for current, ADC2 for voltage — simultaneous sampling for accurate power calculation
+
+### High-Frequency Current Loop Optimizations (40kHz - 100kHz+)
+
+PFC and Vienna current loops must strictly execute within the available PWM cycle to maintain high power factor and low THD. Apply these hardware-level optimizations for the inner loop:
+
+- **Bypass CMSIS DSP**: Avoid using standard `arm_math.h` functions (like `arm_clip_f32`) inside the high-frequency current loop to eliminate function call overhead constraint.
+- **FPU Branchless Clamping**: Use ternary operators `(val > max) ? max : ((val < min) ? min : val)` for duty cycle and integration limits. GCC maps this directly to single-cycle `VMAXNM.F32` and `VMINNM.F32` instructions.
+- **CORDIC-Driven Current Profiling**: The PFC current reference relies on `|sin(θ)|`. Calculate this purely via the CORDIC hardware accelerator, completely offloading the CPU from trigonometric floating-point routines.
+- **Zero-Wait-State Memory**: Place the PFC/Vienna inner current loop calculations and ADC scaling logic in CCMRAM / SRAM by tagging the functions with `__attribute__((section(".ramfunc")))` to avoid Flash memory contention.

@@ -267,3 +267,21 @@ void hrtim_deadtime_config(uint16_t rising_ns, uint16_t falling_ns) {
 - **COMP + DAC**: Use internal comparators with DAC reference for programmable OCP threshold
 - **OPAMP**: Internal opamps for current sense signal conditioning
 - **ADC Trigger**: HRTIM ADC trigger units (ADC1R–ADC4R) for precise sampling point placement
+
+### High-Frequency Current Loop Optimizations (>50kHz - 100kHz+)
+
+When dealing with high-frequency DC-DC topologies (e.g., fast Bidirectional Buck-Boost or high-density Buck), the inner current loop ISR latency becomes the primary bottleneck. At 100kHz, the entire ISR budget is strictly < 10 µs. Apply the following strategies:
+
+- **Bypass CMSIS DSP in Hot-Paths**: Do not use `arm_clip_f32()` or standard library function calls in the current loop ISR, as the stack push/pop overhead defeats the FPU benefit.
+- **FPU Branchless Ternary Clamping**: 
+  Instead of standard `if-else` blocks or function calls, aggressively use ternary operators for saturation. GCC will compile this directly into single-cycle ARM FPU instructions (`VMAXNM.F32` and `VMINNM.F32`).
+  ```c
+  /* Compiles to 1-2 CPU cycles, zero branch prediction penalty */
+  duty = (duty > MAX_DUTY) ? MAX_DUTY : ((duty < MIN_DUTY) ? MIN_DUTY : duty);
+  ```
+- **Hardware Intrinsics for Fixed-Point**: 
+  If avoiding floating-point entirely for speed, use `__SSAT(value, bit_position)` for single-cycle hardware saturation.
+- **Zero-Wait State Memory (.ramfunc)**: 
+  Flash memory access latency (Wait States) ruins high-frequency ISR determinism. Move the entire current-loop controller into CCMRAM or SRAM by tagging the function with `__attribute__((section(".ramfunc")))`.
+- **Precompute Everything**: 
+  Division and floating-point parameters (like `Ki * Ts`) MUST be precalculated in the slow background loop. The fast ISR should only contain Fused Multiply-Accumulate (FMA) instructions (`VMLA.F32`).

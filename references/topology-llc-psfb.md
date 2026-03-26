@@ -264,3 +264,12 @@ void soft_start_update(soft_start_t *ss) {
 - **Dead-time**: HRTIM provides independent rising/falling dead-time for each output — critical for ZVS optimization
 - **ADC Trigger**: Use HRTIM ADC trigger to sample primary current at mid-point of conduction interval
 - **Burst Mode**: HRTIM output disable/enable with state retention for seamless burst mode implementation
+
+### High-Frequency Resonant Loop Optimizations (100kHz - 500kHz+)
+
+Resonant converters frequently switch at frequencies far exceeding 100kHz, meaning the control loop ISR time budget is extremely constrained.
+
+- **FPU Branchless Ternary Clamping**: For clamping the target LLC frequency (`f_min` / `f_max`) or PSFB phase shift, use pure ternary operators rather than standard `if-else` branching or CMSIS bounds checking. This compiles to zero-branch `VMAX/VMIN` FPU instructions.
+- **Fixed-Point Hardware Intrinsics**: If the resonant frequency loop is utilizing fixed-point math to guarantee speed, heavily rely on the `__SSAT()` intrinsic for 1-cycle saturation instead of multi-cycle logical comparisons.
+- **RAM Execution (.ramfunc)**: Executing an LLC frequency-update ISR from Flash at 200kHz+ will drastically impact background tasks and ADC predictability. Force the hot-path routine into CCMRAM using `__attribute__((section(".ramfunc")))`.
+- **Precalculated Multipliers**: Division operations (e.g., tracking `1 / f_sw` or period conversions) must be strictly avoided in the ISR. Convert these into floating-point multiplications using pre-calculated inverses updated only by the slow loop.
