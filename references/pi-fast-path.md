@@ -46,10 +46,10 @@ path ownership is explicit.
 - Example structure:
 ```c
 // In ISR
-float error = reference - feedback;
-float p_term = kp * error;
+float32_t error = reference - feedback;
+float32_t p_term = kp * error;
 integral += ki_ts * error;
-float unsaturated = p_term + integral;
+float32_t unsaturated = p_term + integral;
 output = arm_clip_f32(unsaturated, min, max);
 ```
 
