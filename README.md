@@ -58,6 +58,14 @@ The skill includes comprehensive reference materials covering:
 - `engineering-practices-devops.md`: Development and deployment practices
 - `stm32g4-capability-matrix.md`: STM32G4 family assumptions and feature boundaries
 
+## Roadmap / Future Expansions
+
+While the current repository provides high-density algorithmic references and constraints, the community is welcome to help expand the following areas:
+
+- **Compile-Ready Skeleton (`templates/`)**: Developing a barebones, compilable STM32G4 project skeleton (including `main.c`, `stm32g4xx_it.c`, and `.ld` linker scripts mapping to `.ramfunc`). **Condition**: Any skeleton committed here MUST be explicitly tested on real hardware to verify interrupt latency and CORDIC sampling timing.
+- **Modern AI-Assisted Workflow**: Establishing a `VS Code + Cortex-Debug + CMake` toolchain architecture. This open-source-friendly stack pairs perfectly with AI code generation, escaping vendor-locked IDE constraints and enabling CI/CD integrations.
+- **Software-In-the-Loop (SIL) Guidelines**: Exploring Agentic TDD (Test-Driven Development) for PI/PR controllers. Note: This will include strict warnings regarding the **"Simulation Trap"**—ensuring SIL mock environments do not ignore real-world parasitics, ADC ringing, and dead-time distortions.
+
 ## Contributing
 
 Contributions are welcome! Please feel free to submit issues, feature requests, or pull requests.
